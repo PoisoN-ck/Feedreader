@@ -91,43 +91,19 @@ $(function() {
 
        /* To make sure that content actually changes when new feed was loaded */
 
-       let feedsData = [];
-
-       /* Build an array of feeds list */
-
-       let feeds = Array.prototype.slice.call(document.querySelectorAll('.feed-list a'));
-       
-       function saveFeed(feedsList, done) {
-           loadFeed(feedsList.shift().dataset.id, function() { // Load each feed
-                feedsData.push(document.querySelector('.feed').innerHTML); // Add feed data to an array as a new array eleement
-                if (feedsList.length > 0) {
-                    saveFeed(feedsList, done);
-                } else {
-                    done();
-                }
-           })
-       }
-       
-
         beforeEach(function(done) {
-            /* Alternative variant of simplier solution
-            loadFeed(1, function() {
+            loadFeed(0, function() {
                 firstFeed = document.querySelector('.feed').innerHTML;
-                loadFeed(2, function() {
+                loadFeed(1, function() {
                     secondFeed = document.querySelector('.feed').innerHTML;
                     done();
                 });
             });
-            */ 
-           saveFeed(feeds, done);
-
         });
 
         it('new content', function(done) {
-            for (let i = 0; i < feedsData.length; i++) {
-                expect(feedsData[i]).not.toEqual(feedsData[i+1]);
-                done();
-            }
+            expect(firstFeed).not.toEqual(secondFeed);
+            done();
         });
     });
 }());
