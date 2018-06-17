@@ -14,39 +14,26 @@ $(function() {
     * feeds definitions, the allFeeds variable in our application.
     */
     describe('RSS Feeds', function() {
-        /* This is our first test - it tests to make sure that the
-         * allFeeds variable has been defined and that it is not
-         * empty. Experiment with this before you get started on
-         * the rest of this project. What happens when you change
-         * allFeeds in app.js to be an empty array and refresh the
-         * page?
-         */
-        console.log(allFeeds);
+
         it('are defined', function() {
             expect(allFeeds).toBeDefined();
             expect(allFeeds.length).not.toBe(0);
         });
 
+        /* Check whether each feed has a defined URL and it is not empty */
 
-        /* TODO: Write a test that loops through each feed
-         * in the allFeeds object and ensures it has a URL defined
-         * and that the URL is not empty.
-         */
         it('have URL', function() {
             for (let i = 0; i < allFeeds.length; i++) {
-                expect(allFeeds[i].url).toBeDefined();
+                expect(allFeeds[i].url).not.toBe('');
                 expect(allFeeds[i].url).toMatch(/(http|https)\:\/\/(?=\w)/); //To be sure link can http:// or https:// and is not empty
             }
         });
 
+        /* Check whether each feed has a defined name and it is not empty*/
 
-        /* TODO: Write a test that loops through each feed
-         * in the allFeeds object and ensures it has a name defined
-         * and that the name is not empty.
-         */
         it('have a name', function() {
             for (let i = 0; i < allFeeds.length; i++) {
-                expect(allFeeds[i].name).toBeDefined();
+                expect(allFeeds[i].url).not.toBe('');
                 expect(allFeeds[i].name).toMatch(/^\w{3,}/); 
             }
         });
@@ -54,61 +41,31 @@ $(function() {
     });
 
 
-    /* TODO: Write a new test suite named "The menu" */
-
     describe("The menu", function() {
         
+        /* Check whether the menu is hidden by default */
+
+        let menuIsHidden = $("body").hasClass("menu-hidden");
         
-        /* TODO: Write a test that ensures the menu element is
-        * hidden by default. You'll have to analyze the HTML and
-        * the CSS to determine how we're performing the
-        * hiding/showing of the menu element.
-        */
-        let menuIsHidden;
-        let hiddenMenu = document.querySelector('.menu-hidden');
-            
-        if (hiddenMenu) {
-            menuIsHidden = true;
-        } else {
-            menuIsHidden = false;
-        }
-
-        let iconButton = document.querySelector('.menu-icon-link');
-        iconButton.addEventListener("click", function() {
-            menuIsHidden = !menuIsHidden;
-        });
-
         it('is hidden', function() {
             expect(menuIsHidden).toBe(true);  
         });
        
-       /* TODO: Write a test that ensures the menu changes
-       * visibility when the menu icon is clicked. This test
-       * should have two expectations: does the menu display when
-       * clicked and does it hide when clicked again.
-       */
-    
-
+        /* Check whether visibility is changed when the menu icon is clicked. When clicked it is shown and when clicked again becomes hidden */
+        
         it('is properly working', function() {
-            if (!menuIsHidden) {
-                expect(hiddenMenu).toBe(null);
-            } else {
-                expect(hiddenMenu).not.toBe(null);
-            }
+            $(".menu-icon-link").trigger("click");
+            menuIsHidden = $("body").hasClass("menu-hidden");
+            expect(menuIsHidden).toBe(false);
+            $(".menu-icon-link").trigger("click");
         });
         
     });
 
 
-      /* TODO: Write a new test suite named "Initial Entries" */
     describe("Initial Entries", function() {
 
-        /* TODO: Write a test that ensures when the loadFeed
-        * function is called and completes its work, there is at least
-        * a single .entry element within the .feed container.
-        * Remember, loadFeed() is asynchronous so this test will require
-        * the use of Jasmine's beforeEach and asynchronous done() function.
-        */
+        /*  Ensure that loaded feed has a t least 1 feed element */
         let generalFeed = document.querySelector('.feed');
         let allEntries;
         function feedIsReady(status) {
@@ -125,35 +82,52 @@ $(function() {
             })
         });
         it('have feed elements', function(done){
-            expect(allEntries.length).toBeGreaterThan(1);
+            expect(allEntries.length).toBeGreaterThan(0);
             done();
         });
     });
         
-        /* TODO: Write a new test suite named "New Feed Selection" */
     describe("New Feed Selection", function() {
 
-        /* TODO: Write a test that ensures when a new feed is loaded
-        * by the loadFeed function that the content actually changes.
-        * Remember, loadFeed() is asynchronous.
-        */
+       /* To make sure that content actually changes when new feed was loaded */
 
-       let firstFeed;
-       let secondFeed;
+       let feedsData = [];
+
+       /* Build an array of feeds list */
+
+       let feeds = Array.prototype.slice.call(document.querySelectorAll('.feed-list a'));
+       
+       function saveFeed(feedsList, done) {
+           loadFeed(feedsList.shift().dataset.id, function() { // Load each feed
+                feedsData.push(document.querySelector('.feed').innerHTML); // Add feed data to an array as a new array eleement
+                if (feedsList.length > 0) {
+                    saveFeed(feedsList, done);
+                } else {
+                    done();
+                }
+           })
+       }
+       
 
         beforeEach(function(done) {
-            loadFeed(0, function() {
-                firstFeed = document.querySelector('.feed').innerHTML;
-            });
+            /* Alternative variant of simplier solution
             loadFeed(1, function() {
-                secondFeed = document.querySelector('.feed').innerHTML;
-                done();
+                firstFeed = document.querySelector('.feed').innerHTML;
+                loadFeed(2, function() {
+                    secondFeed = document.querySelector('.feed').innerHTML;
+                    done();
+                });
             });
+            */ 
+           saveFeed(feeds, done);
+
         });
 
         it('new content', function(done) {
-            expect(secondFeed).not.toEqual(firstFeed);
-            done();
+            for (let i = 0; i < feedsData.length; i++) {
+                expect(feedsData[i]).not.toEqual(feedsData[i+1]);
+                done();
+            }
         });
     });
 }());
